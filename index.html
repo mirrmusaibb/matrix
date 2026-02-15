@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>The Matrix</title>
+
+<!-- Classic Matrix Favicon (SVG) -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
 <style>
@@ -12,20 +14,20 @@
     background: black;
     overflow: hidden;
   }
-
   canvas {
     display: block;
   }
 </style>
 </head>
-<body>
 
+<body>
 <canvas id="matrix"></canvas>
 
 <script>
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
+// Make canvas full screen
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -33,52 +35,43 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// Matrix glyph set
-const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+// Matrix character set (Latin, numbers, and Katakana-like glyphs)
+const characters = 
+  "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const fontSize = 18;
+const columns = Math.floor(canvas.width / fontSize);
+const drops = [];
 
-// Smaller font = denser rain
-const fontSize = 14;
-let columns = Math.floor(canvas.width / fontSize);
-
-// Each column has its own drop physics
-let drops = Array.from({ length: columns }, () => ({
-  y: Math.random() * canvas.height,
-  speed: 1 + Math.random() * 3,
-  trail: 8 + Math.random() * 18
-}));
-
-function draw() {
-  // Fade previous frame (controls motion blur)
-  ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.font = fontSize + "px monospace";
-
-  drops.forEach((d, i) => {
-    for (let t = 0; t < d.trail; t++) {
-      const char = chars[Math.floor(Math.random() * chars.length)];
-      const yPos = d.y - t * fontSize;
-
-      if (yPos < 0) continue;
-
-      // Head is brighter, tail is green
-      ctx.fillStyle = t === 0 ? "#ccfff3" : "#00ff41";
-      ctx.fillText(char, i * fontSize, yPos);
-    }
-
-    d.y += d.speed * fontSize;
-
-    // Reset when off screen
-    if (d.y > canvas.height + d.trail * fontSize) {
-      d.y = 0;
-      d.speed = 1 + Math.random() * 3;
-      d.trail = 8 + Math.random() * 18;
-    }
-  });
+// Initialize one drop per column
+for (let i = 0; i < columns; i++) {
+  drops[i] = Math.random() * canvas.height;
 }
 
-// ~30 FPS for smooth cinematic motion
-setInterval(draw, 30);
+function draw() {
+  // Fade background (trail effect)
+  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#00ff41"; // classic green
+  ctx.font = fontSize + "px monospace";
+
+  for (let i = 0; i < drops.length; i++) {
+    const text = characters[Math.floor(Math.random() * characters.length)];
+
+    ctx.fillText(text, i * fontSize, drops[i]);
+
+    // Reset drop to top randomly after it goes off screen
+    if (drops[i] > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
+    }
+
+    drops[i] += fontSize;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+draw();
 </script>
 
 </body>
