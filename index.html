@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>The Matrix</title>
 
-<!-- Classic Matrix Favicon (SVG) -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
 <style>
@@ -19,15 +18,14 @@
   }
 </style>
 </head>
-
 <body>
+
 <canvas id="matrix"></canvas>
 
 <script>
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
-// Make canvas full screen
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -35,37 +33,45 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// Matrix character set (Latin, numbers, and Katakana-like glyphs)
-const characters = 
-  "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const fontSize = 18;
-const columns = Math.floor(canvas.width / fontSize);
-const drops = [];
+// Classic glyph set
+const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-// Initialize one drop per column
-for (let i = 0; i < columns; i++) {
-  drops[i] = Math.random() * canvas.height;
-}
+// IMPORTANT: readable size stays the same
+const fontSize = 18;
+
+// Increase column density WITHOUT shrinking text
+// Columns are closer than fontSize spacing
+const columnSpacing = fontSize * 0.85;
+const columns = Math.floor(canvas.width / columnSpacing);
+
+// One drop per column
+const drops = Array.from({ length: columns }, () =>
+  Math.floor(Math.random() * canvas.height / fontSize)
+);
 
 function draw() {
-  // Fade background (trail effect)
-  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  // MUCH slower fade → screen stays full
+  ctx.fillStyle = "rgba(0, 0, 0, 0.02)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "#00ff41"; // classic green
+  ctx.fillStyle = "#00ff41";
   ctx.font = fontSize + "px monospace";
 
   for (let i = 0; i < drops.length; i++) {
-    const text = characters[Math.floor(Math.random() * characters.length)];
+    const text = chars[Math.floor(Math.random() * chars.length)];
 
-    ctx.fillText(text, i * fontSize, drops[i]);
+    const x = i * columnSpacing;
+    const y = drops[i] * fontSize;
 
-    // Reset drop to top randomly after it goes off screen
-    if (drops[i] > canvas.height && Math.random() > 0.975) {
+    ctx.fillText(text, x, y);
+
+    // Reset after bottom, but rarely
+    if (y > canvas.height && Math.random() > 0.99) {
       drops[i] = 0;
     }
 
-    drops[i] += fontSize;
+    // Slightly slower fall
+    drops[i] += 0.8;
   }
 
   requestAnimationFrame(draw);
